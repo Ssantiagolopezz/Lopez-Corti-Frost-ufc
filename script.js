@@ -30,6 +30,11 @@ class UFC {
         this.luchadores.push(fighter);
     }
 
+    eliminarLuchador(indice) {
+        this.luchadores.splice(indice, 1);
+        this.mostrarLuchadores(); // Actualizar la lista
+    }
+
     mostrarLuchadores() {
         const listaLuchadores = document.getElementById("listaLuchadores");
         listaLuchadores.innerHTML = '';
@@ -39,9 +44,42 @@ class UFC {
             listaLuchadores.appendChild(li);
         });
     }
+
+    emparejarLuchadores() {
+        const emparejamientosDiv = document.getElementById("emparejamientos");
+        emparejamientosDiv.innerHTML = ''; // Limpiar resultados anteriores
+        if (this.luchadores.length < 2) {
+            emparejamientosDiv.innerHTML = `<p class="error">No hay suficientes luchadores para emparejar.</p>`;
+            return;
+        }
+
+        const emparejamientos = [];
+        const luchadoresCopia = [...this.luchadores];
+
+        while (luchadoresCopia.length > 1) {
+            const index1 = Math.floor(Math.random() * luchadoresCopia.length);
+            const luchador1 = luchadoresCopia.splice(index1, 1)[0];
+
+            const index2 = Math.floor(Math.random() * luchadoresCopia.length);
+            const luchador2 = luchadoresCopia.splice(index2, 1)[0];
+
+            emparejamientos.push(`${luchador1.nombre} vs ${luchador2.nombre}`);
+        }
+
+        if (luchadoresCopia.length === 1) {
+            emparejamientosDiv.innerHTML += `<p class="error">Un luchador no tiene pareja: ${luchadoresCopia[0].nombre}</p>`;
+        }
+
+        emparejamientosDiv.innerHTML += `<h3>Emparejamientos:</h3><ul>${emparejamientos.map(p => `<li>${p}</li>`).join('')}</ul>`;
+    }
+
 }
 
 
+const btnEmparejar = document.getElementById("btnEmparejar");
+btnEmparejar.addEventListener("click", function () {
+    ufc.emparejarLuchadores();
+});
 const ufc = new UFC();
 
 
@@ -69,3 +107,37 @@ formInscripcion.addEventListener("submit", function (e) {
         formInscripcion.reset();
     }
 });
+
+const btnSimularPelea = document.getElementById("btnSimularPelea");
+const resultadoPelea = document.getElementById("resultadoPelea");
+
+btnSimularPelea.addEventListener("click", function () {
+    if (ufc.luchadores.length < 2) {
+        resultadoPelea.innerHTML = `<p class="error">Debe haber al menos dos luchadores para simular una pelea.</p>`;
+        return;
+    }
+
+    // Seleccionar dos luchadores al azar
+    const indices = seleccionarDosAleatorios(ufc.luchadores.length);
+    const luchador1 = ufc.luchadores[indices[0]];
+    const luchador2 = ufc.luchadores[indices[1]];
+
+    // Decidir un ganador al azar
+    const ganador = Math.random() < 0.5 ? luchador1 : luchador2;
+
+    // Mostrar el resultado
+    resultadoPelea.innerHTML = `
+        <p>Pelea entre: <strong>${luchador1.nombre}</strong> y <strong>${luchador2.nombre}</strong></p>
+        <p><strong>Ganador: ${ganador.nombre}</strong></p>
+    `;
+});
+
+// Función para seleccionar dos índices al azar
+function seleccionarDosAleatorios(max) {
+    let index1 = Math.floor(Math.random() * max);
+    let index2;
+    do {
+        index2 = Math.floor(Math.random() * max);
+    } while (index1 === index2);
+    return [index1, index2];
+}
